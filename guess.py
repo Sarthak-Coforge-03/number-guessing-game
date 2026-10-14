@@ -43,14 +43,17 @@ class Game:
         """
         Requests user to respond with the level they want and only calls the setter on valid ones
         """
-        requested = input("Please respond with the level you choose | Easy, Medium, or Hard: ")
-        requested = requested.lower().strip()
-        if requested == "easy":
-            self.set_level(name=requested, min_range=1, max_range=50, max_attempts=10)
-        elif requested == "medium":
-            self.set_level(name=requested, min_range=1, max_range=100,  max_attempts=8)
-        elif requested == "hard":
-            self.set_level(name=requested, min_range=1, max_range=500, max_attempts=10)
+        requested = input("Please respond with the level you choose | 1 for Easy, 2 for Medium, or 3 for Hard: ")
+        if requested.isnumeric():
+            requested = int(requested)
+        else:
+            pass
+        if requested == 1:
+            self.set_level(name="Easy", min_range=1, max_range=50, max_attempts=10)
+        elif requested == 2:
+            self.set_level(name="Medium", min_range=1, max_range=100,  max_attempts=8)
+        elif requested == 3:
+            self.set_level(name="Hard", min_range=1, max_range=500, max_attempts=10)
         else:
             pass
 
