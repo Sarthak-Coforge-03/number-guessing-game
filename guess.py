@@ -40,7 +40,10 @@ class Game:
         self.max_attempts = None
 
     def prompt_level_request(self):
-        requested = input("Please response with level you choose | Easy, Medium, or Hard: ")
+        """
+        Requests user to respond with the level they want and only calls the setter on valid ones
+        """
+        requested = input("Please respond with the level you choose | Easy, Medium, or Hard: ")
         requested = requested.lower().strip()
         if requested == "easy":
             self.set_level(name=requested, min_range=1, max_range=50, max_attempts=10)
@@ -62,6 +65,9 @@ class Game:
         self.target = random.randint(self.min_range, self.max_range)
 
     def confirm_level_message(self):
+        """
+        Prints a message to user confirming their level selection, max attempts, and range
+        """
         print(f"User has selected the following: \nLevel: {self.level_name}\n Max Range: {self.max_range} \n You get Max {self.max_attempts} attempts!")
 
     def prompt_to_answer(self):
