@@ -33,11 +33,11 @@ class Game:
         self.latest_valid_response = True # If latest response was valid or not
         self.won = False # If user won latest game
         self.first_guess = True # If this will be the first guess user will take in the game
-        self.level_name = None
-        self.max_range = None
-        self.min_range = None
+        self.level_name = None # Level requested name
+        self.max_range = None # Max val of target
+        self.min_range = None # Min val of target 
         self.target = None # Randomly generate the target to reach
-        self.max_attempts = None
+        self.max_attempts = None # Max attempts allowed
 
     def prompt_level_request(self):
         """
@@ -79,6 +79,7 @@ class Game:
         4. If latest response was valid but lesser than target
         """
         answer = None
+        print(f"{self.max_attempts - self.attempts} attempts left!!")
         if self.first_guess:
             answer = input("Please input your first guess: ")
             self.first_guess = False
@@ -109,9 +110,12 @@ class Game:
         """
         Update the state in case the game has reached end conditions
         """
-        current_condition = self.latest_valid_guess == self.target
-        self.completed = current_condition
-        self.won = True
+        if self.latest_valid_guess == self.target:
+            self.completed = True
+            self.won = True
+        elif self.max_attempts <= self.attempts:
+            self.completed = True
+            self.won = False
         return self.completed
 
     def end_game(self):
@@ -121,7 +125,7 @@ class Game:
         if self.won:
             print(f"YOU WON!!! It took {self.attempts} attempts!")
         else:
-            print("YOU LOST!!")
+            print(f"YOU LOST!! You have exceeded the {self.max_attempts} attempts allowed!\n THE SECRET NUMBER WAS: {self.target}")
 
 
     def game_loop(self):
