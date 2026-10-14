@@ -28,7 +28,7 @@ class Game:
     """
     def __init__(self):
         self.completed: bool = False # Flag showing if game was completed or not
-        self.target = random.randint(1, 20) # Randomly generate the target to reach
+        self.target = random.randint(DEBUG_SECRET) # Randomly generate the target to reach
         self.attempts = 0 # Number of attempts recorded
         self.latest_valid_guess = None # Latest valid guess 
         self.latest_valid_response = True # If latest response was valid or not
