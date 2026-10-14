@@ -38,11 +38,14 @@ class Game:
         self.min_range = None # Min val of target 
         self.target = None # Randomly generate the target to reach
         self.max_attempts = None # Max attempts allowed
-        self.start_time = None
-        self.current_time = None
-        self.mode = None
-        self.timed_mode = False
-        self.max_time = None
+        self.start_time = None # start time of guesses
+        self.current_time = None # current time
+        self.mode = None # what mode, timed or classic
+        self.timed_mode = False # if we are in timed mode
+        self.max_time = None # max time stamp
+        self.attempts_elapsed = False # if attempts were elapsed
+        self.time_elapsed = False # if time was elapsed
+        self.lost = False # if the game has been lost
 
     def prompt_mode_request(self):
             """
@@ -72,11 +75,10 @@ class Game:
         If we are in timed mode, update start time if not set yet or current time if start time is set already
         """
         if self.timed_mode:
-            if self.start_time:
-                self.current_time = time.time()
-            else:
+            if not self.start_time:
                 self.start_time = time.time()
-                self.max_time = self.start_time + 60
+            self.current_time = time.time()
+            self.max_time = self.start_time + 60
 
     def confirm_mode_message(self):
         """
@@ -149,19 +151,17 @@ class Game:
         Send a message saying time amount of time you have left or if time started now
         """
         if self.timed_mode and self.start_time:
-            if self.current_time:
-                print(f"You have {self.max_time - self.current_time} seconds left!!")
-            else:
-                print("Your time starts now!!")
+            print(f"You have {round(max(self.max_time - self.current_time, 0))} seconds left!!")
+
 
     def validate_response(self, answer:str):
         """
         Check if a response is valid and update state accordinly
         """
-        if answer and answer.isnumeric():
+        if answer and answer.isnumeric() and answer >= self.min_range and self.max_time >= answer:
             self.latest_valid_guess = int(answer)
             self.attempts += 1
-            self.latest_valid_response = True
+            self.latest_valid_response = True                
             return True
         else:
              self.latest_valid_response = False
@@ -171,12 +171,19 @@ class Game:
         """
         Update the state in case the game has reached end conditions
         """
-        if self.latest_valid_guess == self.target:
+        if self.timed_mode and self.max_time <= self.current_time:
+            self.completed = True
+            self.won = False
+            self.time_elapsed = True
+            self.lost = True
+        elif self.latest_valid_guess == self.target:
             self.completed = True
             self.won = True
         elif self.max_attempts <= self.attempts:
             self.completed = True
             self.won = False
+            self.attempts_elapsed = True
+            self.lost = True
         return self.completed
 
     def end_game(self):
@@ -185,8 +192,12 @@ class Game:
         """
         if self.won:
             print(f"YOU WON!!! It took {self.attempts} attempts!")
-        else:
-            print(f"YOU LOST!! You have exceeded the {self.max_attempts} attempts allowed!\n THE SECRET NUMBER WAS: {self.target}")
+        elif self.lost:
+            if self.attempts_elapsed:
+                print(f"YOU LOST!! You have exceeded the {self.max_attempts} attempts allowed!\n THE SECRET NUMBER WAS: {self.target}")
+            elif self.time_elapsed:
+                print(f"YOU LOST!! You have exceeded the {TIME_LIMIT} seconds limit!\n THE SECRET NUMBER WAS: {self.target}")
+
 
 
     def game_loop(self):
@@ -202,6 +213,7 @@ class Game:
         while not self.completed:
             self.update_time()
             answer = self.prompt_to_answer()
+            self.update_time()  
             self.validate_response(answer=answer)
             self.check_end_condition()
             pass
