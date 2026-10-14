@@ -28,12 +28,41 @@ class Game:
     """
     def __init__(self):
         self.completed: bool = False # Flag showing if game was completed or not
-        self.target = random.randint() # Randomly generate the target to reach
         self.attempts = 0 # Number of attempts recorded
         self.latest_valid_guess = None # Latest valid guess 
         self.latest_valid_response = True # If latest response was valid or not
         self.won = False # If user won latest game
         self.first_guess = True # If this will be the first guess user will take in the game
+        self.level_name = None
+        self.max_range = None
+        self.min_range = None
+        self.target = None # Randomly generate the target to reach
+        self.max_attempts = None
+
+    def prompt_level_request(self):
+        requested = input("Please response with level you choose | Easy, Medium, or Hard: ")
+        requested = requested.lower().strip()
+        if requested == "easy":
+            self.set_level(name=requested, min_range=1, max_range=50, max_attempts=10)
+        elif requested == "medium":
+            self.set_level(name=requested, min_range=1, max_range=100,  max_attempts=8)
+        elif requested == "hard":
+            self.set_level(name=requested, min_range=1, max_range=500, max_attempts=10)
+        else:
+            pass
+
+    def set_level(self, name:str, min_range: int, max_range: int, max_attempts: int):
+        """
+        Sets the level requested
+        """
+        self.level_name = name
+        self.max_range = max_range
+        self.min_range = min_range
+        self.max_attempts = max_attempts
+        self.target = random.randint(self.min_range, self.max_range)
+
+    def confirm_level_message(self):
+        print(f"User has selected the following: \nLevel: {self.level_name}\n Max Range: {self.max_range} \n You get Max {self.max_attempts} attempts!")
 
     def prompt_to_answer(self):
         """
@@ -93,6 +122,9 @@ class Game:
         """
         Game loop to follow for the playthrough
         """
+        while not self.level_name:
+            self.prompt_level_request()
+        self.confirm_level_message()
         while not self.completed:
             answer = self.prompt_to_answer()
             self.validate_response(answer=answer)
