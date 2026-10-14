@@ -42,6 +42,7 @@ class Game:
         self.current_time = None
         self.mode = None
         self.timed_mode = False
+        self.max_time = None
 
     def prompt_mode_request(self):
             """
@@ -65,6 +66,17 @@ class Game:
         Set the mode requested
         """
         self.mode = name
+
+    def update_time(self):
+        """
+        If we are in timed mode, update start time if not set yet or current time if start time is set already
+        """
+        if self.timed_mode:
+            if self.start_time:
+                self.current_time = time.time()
+            else:
+                self.start_time = time.time()
+                self.max_time = self.start_time + 60
 
     def confirm_mode_message(self):
         """
@@ -117,6 +129,7 @@ class Game:
         4. If latest response was valid but lesser than target
         """
         answer = None
+        self.send_time_update_message()
         print(f"{self.max_attempts - self.attempts} attempts left!!")
         if self.first_guess:
             answer = input("Please input your first guess: ")
@@ -130,6 +143,16 @@ class Game:
         else:
             answer = input("Your previous response was invalid, please input only numbers: ")
         return answer
+
+    def send_time_update_message(self):
+        """
+        Send a message saying time amount of time you have left or if time started now
+        """
+        if self.timed_mode and self.start_time:
+            if self.current_time:
+                print(f"You have {self.max_time - self.current_time} seconds left!!")
+            else:
+                print("Your time starts now!!")
 
     def validate_response(self, answer:str):
         """
@@ -177,6 +200,7 @@ class Game:
             self.prompt_level_request()
         self.confirm_level_message()
         while not self.completed:
+            self.update_time()
             answer = self.prompt_to_answer()
             self.validate_response(answer=answer)
             self.check_end_condition()
