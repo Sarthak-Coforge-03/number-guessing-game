@@ -23,20 +23,30 @@ print("Welcome to the Number Guessing Game")
 # Goal: show the result that matches how the round ended.
 
 class Game:
+    """
+    Class to manage the game state
+    """
     def __init__(self):
         self.completed: bool = False # Flag showing if game was completed or not
         self.target = random.randint(1, 20) # Randomly generate the target to reach
         self.attempts = 0 # Number of attempts recorded
-        self.current_guess = None
-        self.prev_valid_response = True
-        self.won = False
+        self.latest_valid_guess = None # Latest valid guess 
+        self.latest_valid_response = True # If latest response was valid or not
+        self.won = False # If user won latest game
 
     def prompt_to_answer(self):
+        """
+        Prompts the user to answer, initiates separate input prompts based on following:
+        1. If this is users first response
+        2. If latest response was invalid
+        3. If latest response was valid but greater than target
+        4. If latest response was valid but lesser than target
+        """
         answer = None
-        if self.prev_valid_response:
-            if self.current_guess == None:
+        if self.latest_valid_response:
+            if self.latest_valid_guess == None:
                 answer = input("Please input your first guess: ")
-            elif self.current_guess > self.target:
+            elif self.latest_valid_guess > self.target:
                 answer = input("Your previous guess was too high! New guess: ")
             else:
                 answer = input("Your previous guess was too low! New guess: ")
@@ -45,22 +55,31 @@ class Game:
         return answer
 
     def validate_response(self, answer:str):
+        """
+        Check if a response is valid and update state accordinly
+        """
         if answer and answer.isnumeric():
-            self.current_guess = int(answer)
+            self.latest_valid_guess = int(answer)
             self.attempts += 1
-            self.prev_valid_response = True
+            self.latest_valid_response = True
             return True
         else:
-             self.prev_valid_response = False
+             self.latest_valid_response = False
              return False
 
     def check_end_condition(self):
-        current_condition = self.current_guess == self.target
+        """
+        Update the state in case the game has reached end conditions
+        """
+        current_condition = self.latest_valid_guess == self.target
         self.completed = current_condition
         self.won = True
         return self.completed
 
     def end_game(self):
+        """
+        Print the end game message depending on end state
+        """
         if self.won:
             print(f"YOU WON!!! It took {self.attempts} attempts!")
         else:
@@ -68,6 +87,9 @@ class Game:
 
 
     def game_loop(self):
+        """
+        Game loop to follow for the playthrough
+        """
         while not self.completed:
             answer = self.prompt_to_answer()
             self.validate_response(answer=answer)
