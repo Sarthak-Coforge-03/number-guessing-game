@@ -38,6 +38,41 @@ class Game:
         self.min_range = None # Min val of target 
         self.target = None # Randomly generate the target to reach
         self.max_attempts = None # Max attempts allowed
+        self.start_time = None
+        self.current_time = None
+        self.mode = None
+        self.timed_mode = False
+
+    def prompt_mode_request(self):
+            """
+            Requests user to respond with the mode they want and only calls the setter on valid ones
+            """
+            requested = input("Please respond with the mode you choose | 1 for Classic Challenge or 2 for Time Challenge: ")
+            if requested.isnumeric():
+                requested = int(requested)
+            else:
+                pass
+            if requested == 1:
+                self.set_mode(name="Classic Challenge")
+            elif requested == 2:
+                self.set_mode(name="Time Challenge")
+                self.timed_mode = True
+            else:
+                pass
+
+    def set_mode(self, name: str):
+        """
+        Set the mode requested
+        """
+        self.mode = name
+
+    def confirm_mode_message(self):
+        """
+        Message to confirm the mode selected to the user!
+        """
+        print(f"You have requested {self.mode} mode!")
+        if self.timed_mode:
+            print(f"You will get {TIME_LIMIT} seconds!!")
 
     def prompt_level_request(self):
         """
@@ -135,6 +170,9 @@ class Game:
         """
         Game loop to follow for the playthrough
         """
+        while not self.mode:
+            self.prompt_mode_request()
+        self.confirm_mode_message()
         while not self.level_name:
             self.prompt_level_request()
         self.confirm_level_message()
