@@ -28,11 +28,12 @@ class Game:
     """
     def __init__(self):
         self.completed: bool = False # Flag showing if game was completed or not
-        self.target = random.randint(DEBUG_SECRET) # Randomly generate the target to reach
+        self.target = random.randint() # Randomly generate the target to reach
         self.attempts = 0 # Number of attempts recorded
         self.latest_valid_guess = None # Latest valid guess 
         self.latest_valid_response = True # If latest response was valid or not
         self.won = False # If user won latest game
+        self.first_guess = True # If this will be the first guess user will take in the game
 
     def prompt_to_answer(self):
         """
@@ -43,10 +44,12 @@ class Game:
         4. If latest response was valid but lesser than target
         """
         answer = None
+        if self.first_guess:
+            answer = input("Please input your first guess: ")
+            self.first_guess = False
+            return answer
         if self.latest_valid_response:
-            if self.latest_valid_guess == None:
-                answer = input("Please input your first guess: ")
-            elif self.latest_valid_guess > self.target:
+            if self.latest_valid_guess > self.target:
                 answer = input("Your previous guess was too high! New guess: ")
             else:
                 answer = input("Your previous guess was too low! New guess: ")
