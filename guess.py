@@ -7,20 +7,6 @@ TIME_LIMIT = 60       # Seconds allowed in Time Challenge mode
 
 print("Welcome to the Number Guessing Game")
 
-# ---------- Choose a level ----------
-# Goal: keep asking until the player picks a valid level, then set the range and attempt limit.
-
-# ---------- Choose a mode ----------
-# Goal: keep asking until the player picks Classic or Time Challenge.
-
-# ---------- Set up the round ----------
-# Goal: pick the secret number (use DEBUG_SECRET when it is not None) and start the clock.
-
-# ---------- Guess loop ----------
-# Goal: keep asking for guesses until the player wins, runs out of attempts, or runs out of time.
-
-# ---------- End of round ----------
-# Goal: show the result that matches how the round ended.
 
 class Game:
     """
@@ -38,12 +24,61 @@ class Game:
         self.min_range = None # Min val of target 
         self.target = None # Randomly generate the target to reach
         self.max_attempts = None # Max attempts allowed
+        self.start_time = None # start time of guesses
+        self.current_time = None # current time
+        self.mode = None # what mode, timed or classic
+        self.timed_mode = False # if we are in timed mode
+        self.max_time = None # max time stamp
+        self.attempts_elapsed = False # if attempts were elapsed
+        self.time_elapsed = False # if time was elapsed
+        self.lost = False # if the game has been lost
+
+    def prompt_mode_request(self):
+            """
+            Requests user to respond with the mode they want and only calls the setter on valid ones
+            """
+            requested = input("Please respond with the mode you choose | \n1 for Classic Challenge  \n2 for Time Challenge: ")
+            if requested.isnumeric():
+                requested = int(requested)
+            else:
+                pass
+            if requested == 1:
+                self.set_mode(name="Classic Challenge")
+            elif requested == 2:
+                self.set_mode(name="Time Challenge")
+                self.timed_mode = True
+            else:
+                pass
+
+    def set_mode(self, name: str):
+        """
+        Set the mode requested
+        """
+        self.mode = name
+
+    def update_time(self):
+        """
+        If we are in timed mode, update start time if not set yet or current time if start time is set already
+        """
+        if self.timed_mode:
+            if not self.start_time:
+                self.start_time = time.time()
+            self.current_time = time.time()
+            self.max_time = self.start_time + TIME_LIMIT
+
+    def confirm_mode_message(self):
+        """
+        Message to confirm the mode selected to the user!
+        """
+        print(f"You have requested {self.mode} mode!")
+        if self.timed_mode:
+            print(f"You will get {TIME_LIMIT} seconds!!")
 
     def prompt_level_request(self):
         """
         Requests user to respond with the level they want and only calls the setter on valid ones
         """
-        requested = input("Please respond with the level you choose | 1 for Easy, 2 for Medium, or 3 for Hard: ")
+        requested = input("Please respond with the level you choose | \n1 for Easy \n2 for Medium \n3 for Hard: ")
         if requested.isnumeric():
             requested = int(requested)
         else:
@@ -65,7 +100,10 @@ class Game:
         self.max_range = max_range
         self.min_range = min_range
         self.max_attempts = max_attempts
-        self.target = random.randint(self.min_range, self.max_range)
+        if DEBUG_SECRET:
+            self.target = DEBUG_SECRET
+        else:
+            self.target = random.randint(self.min_range, self.max_range)
 
     def confirm_level_message(self):
         """
@@ -82,6 +120,7 @@ class Game:
         4. If latest response was valid but lesser than target
         """
         answer = None
+        self.send_time_update_message()
         print(f"{self.max_attempts - self.attempts} attempts left!!")
         if self.first_guess:
             answer = input("Please input your first guess: ")
@@ -93,17 +132,25 @@ class Game:
             else:
                 answer = input("Your previous guess was too low! New guess: ")
         else:
-            answer = input("Your previous response was invalid, please input only numbers: ")
+            answer = input("Your previous response was invalid, please input only valid numbers: ")
         return answer
+
+    def send_time_update_message(self):
+        """
+        Send a message saying time amount of time you have left or if time started now
+        """
+        if self.timed_mode and self.start_time:
+            print(f"You have {round(max(self.max_time - self.current_time, 0))} seconds left!!")
+
 
     def validate_response(self, answer:str):
         """
         Check if a response is valid and update state accordinly
         """
-        if answer and answer.isnumeric():
+        if answer and answer.isnumeric() and self.min_range <= int(answer) <= self.max_range:
             self.latest_valid_guess = int(answer)
             self.attempts += 1
-            self.latest_valid_response = True
+            self.latest_valid_response = True                
             return True
         else:
              self.latest_valid_response = False
@@ -113,12 +160,19 @@ class Game:
         """
         Update the state in case the game has reached end conditions
         """
-        if self.latest_valid_guess == self.target:
+        if self.timed_mode and self.max_time <= self.current_time:
+            self.completed = True
+            self.won = False
+            self.time_elapsed = True
+            self.lost = True
+        elif self.latest_valid_guess == self.target:
             self.completed = True
             self.won = True
         elif self.max_attempts <= self.attempts:
             self.completed = True
             self.won = False
+            self.attempts_elapsed = True
+            self.lost = True
         return self.completed
 
     def end_game(self):
@@ -127,8 +181,12 @@ class Game:
         """
         if self.won:
             print(f"YOU WON!!! It took {self.attempts} attempts!")
-        else:
-            print(f"YOU LOST!! You have exceeded the {self.max_attempts} attempts allowed!\n THE SECRET NUMBER WAS: {self.target}")
+        elif self.lost:
+            if self.attempts_elapsed:
+                print(f"YOU LOST!! You have exceeded the {self.max_attempts} attempts allowed!\n THE SECRET NUMBER WAS: {self.target}")
+            elif self.time_elapsed:
+                print(f"YOU LOST!! You have exceeded the {TIME_LIMIT} seconds limit!\n THE SECRET NUMBER WAS: {self.target}")
+
 
 
     def game_loop(self):
@@ -138,8 +196,13 @@ class Game:
         while not self.level_name:
             self.prompt_level_request()
         self.confirm_level_message()
+        while not self.mode:
+            self.prompt_mode_request()
+        self.confirm_mode_message()
         while not self.completed:
+            self.update_time()
             answer = self.prompt_to_answer()
+            self.update_time()  
             self.validate_response(answer=answer)
             self.check_end_condition()
             pass
